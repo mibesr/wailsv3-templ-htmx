@@ -1,0 +1,64 @@
+version: '3'
+
+includes:
+  linux: ./build/linux/Taskfile.yml
+  darwin: ./build/darwin/Taskfile.yml
+  windows: ./build/windows/Taskfile.yml
+
+vars:
+  APP_NAME: "{{.ProjectName}}"
+  BIN_DIR: "bin"
+
+tasks:
+  default:
+    desc: List available tasks
+    cmds:
+      - task --list
+
+  install:
+    desc: Install dependencies (Go + npm)
+    cmds:
+      - go mod download
+      - npm install
+
+  generate:
+    desc: Generate Templ Go files and build Tailwind CSS
+    cmds:
+      - templ generate
+      - npm run css:build
+
+  build:
+    summary: Generate assets, then build for the current OS
+    deps: [generate]
+    cmds:
+      - task: "{{ "{{OS}}" }}:build"
+
+  run:
+    summary: Runs the application
+    cmds:
+      - task: "{{ "{{OS}}" }}:run"
+
+  dev:
+    desc: Start dev mode (Templ + Tailwind watchers + wails3 dev) in parallel
+    deps: [dev:templ, dev:css, dev:wails]
+
+  dev:templ:
+    desc: Watch .templ files and regenerate
+    cmds:
+      - templ generate --watch
+
+  dev:css:
+    desc: Watch app.css and recompile Tailwind
+    cmds:
+      - npm run css:dev
+
+  dev:wails:
+    desc: Start the Wails dev loop
+    cmds:
+      - wails3 dev
+
+  clean:
+    desc: Remove build artifacts
+    cmds:
+      - rm -rf bin build/bin web/static/dist/app.css
+      - find . -name "*_templ.go" -delete

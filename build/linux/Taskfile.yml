@@ -1,0 +1,17 @@
+version: '3'
+
+tasks:
+  build:
+    summary: Builds the application natively on Linux
+    cmds:
+      - go mod tidy
+      - mkdir -p {{.BIN_DIR}}
+      - go build -tags gtk3 -trimpath -buildvcs=false -ldflags="-w -s" -o {{.BIN_DIR}}/{{.APP_NAME}}
+    env:
+      GOOS: linux
+      CGO_ENABLED: 1
+
+  run:
+    summary: Runs the built binary
+    cmds:
+      - ./{{.BIN_DIR}}/{{.APP_NAME}}

@@ -1,0 +1,40 @@
+package main
+
+import (
+	"log"
+
+	"github.com/wailsapp/wails/v3/pkg/application"
+
+	"{{.ModulePath}}/internal/handlers"
+	"{{.ModulePath}}/internal/server"
+)
+
+func main() {
+	mux := handlers.New(handlers.Deps{})
+
+	app := application.New(application.Options{
+		Name:        "{{.ProjectName}}",
+		Description: "{{.ProductDescription}}",
+		Mac: application.MacOptions{
+			ApplicationShouldTerminateAfterLastWindowClosed: true,
+		},
+		Assets: application.AssetOptions{
+			Handler: mux,
+			Middleware: application.ChainMiddleware(
+				application.Middleware(server.Recoverer),
+				application.Middleware(server.Logger),
+			),
+		},
+	})
+
+	app.Window.NewWithOptions(application.WebviewWindowOptions{
+		Title:  "{{.ProjectName}}",
+		Width:  1024,
+		Height: 768,
+		URL:    "/",
+	})
+
+	if err := app.Run(); err != nil {
+		log.Fatal(err)
+	}
+}

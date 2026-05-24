@@ -1,0 +1,6 @@
+@import "tailwindcss";
+
+/* Tell Tailwind v4 which files to scan for class names — extensions outside its auto-detect set */
+@source "../../**/*.templ";
+@source "../../**/*.go";
+@source "../../../internal/**/*.go";

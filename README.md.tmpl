@@ -1,0 +1,90 @@
+# {{.ProjectName}}
+
+A [Wails v3](https://v3.wails.io) desktop app built with [HTMX](https://htmx.org) and [Templ](https://templ.guide).
+
+## Stack
+
+- Wails v3 (alpha) — desktop runtime
+- Templ — Go-native HTML templating
+- HTMX 2.x — fragment swaps without a JS framework
+- Tailwind CSS 4.x (CSS-first config via @import "tailwindcss" + @source directives) — styling
+- Stdlib `net/http.ServeMux` — routing
+- Taskfile — task runner
+
+## Requirements
+
+- Go 1.26+
+- [Wails v3 CLI](https://v3.wails.io/getting-started/installation)
+- [Task](https://taskfile.dev) — `go install github.com/go-task/task/v3/cmd/task@latest`
+- [Templ CLI](https://templ.guide/quick-start/installation) — `go install github.com/a-h/templ/cmd/templ@latest`
+- Node.js 20+ (for Tailwind)
+
+## Getting started
+
+```bash
+task install     # go mod download + npm install
+task dev         # parallel: templ --watch, tailwind --watch, wails3 dev
+```
+
+Edit `web/pages/home.templ`, save, watch the window refresh.
+
+## Project layout
+
+```
+{{.ProjectName}}/
+├── main.go                      # Wails entry; wires AssetServer
+├── wails.json                   # (none — Wails v3 doesn't use one)
+├── Taskfile.yml                 # task dev / task build / task generate
+├── build/                       # per-OS build subtasks (linux/darwin/windows)
+├── package.json                 # Tailwind only
+├── internal/
+│   ├── handlers/                # HTTP handlers (page + HTMX endpoints) + tests
+│   └── server/                  # Logger + Recoverer middleware + tests
+└── web/
+    ├── components/              # Templ components (reused for initial render + HTMX responses)
+    ├── pages/                   # Full-page Templ templates
+    ├── static/
+    │   ├── htmx.min.js          # Vendored
+    │   ├── src/app.css          # Tailwind source
+    │   └── dist/app.css         # Tailwind output (gitignored)
+    └── static.go                # //go:embed for static files
+```
+
+## How HTMX talks to Go
+
+Wails v3's `AssetServer` accepts any `http.Handler`. We mount a `ServeMux`:
+
+```go
+mux.Handle("POST /api/counter/inc", http.HandlerFunc(counterInc))
+```
+
+The handler renders a Templ component directly to the response writer:
+
+```go
+components.Counter(cur+1).Render(r.Context(), w)
+```
+
+HTMX swaps the returned HTML into the page. No JSON, no Wails bindings, no localhost — Wails routes everything through its in-process asset server.
+
+## Tests
+
+Handler tests use `httptest.NewRecorder` and assert on rendered HTML substrings — examples in `internal/handlers/*_test.go` and `internal/server/middleware_test.go`.
+
+```bash
+go test ./internal/...
+```
+
+## Build & ship
+
+**Always run `task build` — never `wails3 build` directly.** Wails v3 does not support pre-build hooks, so the Taskfile is what guarantees `templ generate` and the Tailwind build run before the Wails binary is compiled. Running `wails3 build` on its own will produce a binary with stale `*_templ.go` files and a missing `web/static/dist/app.css`.
+
+```bash
+task build        # generates Templ + Tailwind, then builds Wails binary into ./bin/
+./bin/{{.ProjectName}}
+```
+
+The binary is single-file: `web/static/` is embedded with `//go:embed`.
+
+## License
+
+MIT.

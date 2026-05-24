@@ -1,0 +1,28 @@
+package components
+
+templ Greeter() {
+	<div class="space-y-3">
+		<form
+			class="flex items-center gap-2"
+			hx-post="/api/greet"
+			hx-target="#greeting"
+			hx-swap="innerHTML">
+			<input
+				type="text"
+				name="name"
+				placeholder="Your name"
+				class="rounded border border-slate-300 px-2 py-1"
+				required/>
+			<button
+				type="submit"
+				class="rounded bg-slate-800 px-3 py-1 text-white hover:bg-slate-700">
+				Greet
+			</button>
+		</form>
+		<div id="greeting" class="text-slate-700"></div>
+	</div>
+}
+
+templ Greeting(name string) {
+	<p>Hello, <strong>{ name }</strong>!</p>
+}

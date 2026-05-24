@@ -1,0 +1,9 @@
+{
+  "schema": 3,
+  "name": "htmx-templ",
+  "shortname": "htmx-templ",
+  "author": "Noah Wilderom",
+  "description": "Wails v3 + HTMX + Templ desktop app starter",
+  "helpurl": "https://github.com/wilderomn/wails3-templ-htmx",
+  "version": "v0.1.0"
+}

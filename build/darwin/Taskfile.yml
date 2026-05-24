@@ -1,0 +1,17 @@
+version: '3'
+
+tasks:
+  build:
+    summary: Builds the application natively on macOS
+    cmds:
+      - go mod tidy
+      - mkdir -p {{.BIN_DIR}}
+      - go build -trimpath -buildvcs=false -ldflags="-w -s" -o {{.BIN_DIR}}/{{.APP_NAME}}
+    env:
+      GOOS: darwin
+      CGO_ENABLED: 1
+
+  run:
+    summary: Runs the built binary
+    cmds:
+      - ./{{.BIN_DIR}}/{{.APP_NAME}}

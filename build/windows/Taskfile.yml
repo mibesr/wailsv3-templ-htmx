@@ -1,0 +1,18 @@
+version: '3'
+
+tasks:
+  build:
+    summary: Builds the application natively on Windows
+    cmds:
+      - go mod tidy
+      - cmd: mkdir {{.BIN_DIR}}
+        ignore_error: true
+      - go build -trimpath -buildvcs=false -ldflags="-w -s -H windowsgui" -o {{.BIN_DIR}}/{{.APP_NAME}}.exe
+    env:
+      GOOS: windows
+      CGO_ENABLED: 1
+
+  run:
+    summary: Runs the built binary
+    cmds:
+      - ./{{.BIN_DIR}}/{{.APP_NAME}}.exe

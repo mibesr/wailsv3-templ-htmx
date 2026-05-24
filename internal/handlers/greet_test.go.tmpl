@@ -1,0 +1,56 @@
+package handlers_test
+
+import (
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
+
+	"{{.ModulePath}}/internal/handlers"
+)
+
+func TestGreetWithName(t *testing.T) {
+	mux := handlers.New(handlers.Deps{})
+
+	req := httptest.NewRequest(http.MethodPost, "/api/greet", strings.NewReader("name=Noah"))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rec := httptest.NewRecorder()
+	mux.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rec.Code)
+	}
+	body := rec.Body.String()
+	if !strings.Contains(body, "Hello,") {
+		t.Errorf("response missing 'Hello,': %s", body)
+	}
+	if !strings.Contains(body, "<strong>Noah</strong>") {
+		t.Errorf("response missing '<strong>Noah</strong>': %s", body)
+	}
+}
+
+func TestGreetEmptyNameDefaultsToStranger(t *testing.T) {
+	mux := handlers.New(handlers.Deps{})
+
+	req := httptest.NewRequest(http.MethodPost, "/api/greet", strings.NewReader("name="))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rec := httptest.NewRecorder()
+	mux.ServeHTTP(rec, req)
+
+	if !strings.Contains(rec.Body.String(), "<strong>stranger</strong>") {
+		t.Errorf("expected '<strong>stranger</strong>', got: %s", rec.Body.String())
+	}
+}
+
+func TestGreetWhitespaceNameDefaultsToStranger(t *testing.T) {
+	mux := handlers.New(handlers.Deps{})
+
+	req := httptest.NewRequest(http.MethodPost, "/api/greet", strings.NewReader("name=   "))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rec := httptest.NewRecorder()
+	mux.ServeHTTP(rec, req)
+
+	if !strings.Contains(rec.Body.String(), "<strong>stranger</strong>") {
+		t.Errorf("expected '<strong>stranger</strong>', got: %s", rec.Body.String())
+	}
+}

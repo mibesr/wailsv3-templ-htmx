@@ -1,0 +1,15 @@
+package pages
+
+import "{{.ModulePath}}/web/components"
+
+templ Home() {
+	@components.Layout("Home") {
+		<main class="mx-auto max-w-2xl p-8 space-y-8">
+			<h1 class="text-3xl font-bold text-slate-900">Wails v3 + HTMX + Templ</h1>
+			<p class="text-slate-700">A starter for desktop apps with server-rendered HTML.</p>
+			@components.Counter(0)
+			@components.Greeter()
+			@components.Footer()
+		</main>
+	}
+}

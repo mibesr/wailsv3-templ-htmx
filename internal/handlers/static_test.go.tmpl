@@ -1,0 +1,37 @@
+package handlers_test
+
+import (
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
+
+	"{{.ModulePath}}/internal/handlers"
+)
+
+func TestStaticServesHTMX(t *testing.T) {
+	mux := handlers.New(handlers.Deps{})
+
+	req := httptest.NewRequest(http.MethodGet, "/static/htmx.min.js", nil)
+	rec := httptest.NewRecorder()
+	mux.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rec.Code)
+	}
+	if !strings.Contains(rec.Body.String(), "htmx") {
+		t.Fatal("response body does not contain 'htmx'")
+	}
+}
+
+func TestStaticUnknownFile404(t *testing.T) {
+	mux := handlers.New(handlers.Deps{})
+
+	req := httptest.NewRequest(http.MethodGet, "/static/does-not-exist.js", nil)
+	rec := httptest.NewRecorder()
+	mux.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusNotFound {
+		t.Fatalf("expected 404, got %d", rec.Code)
+	}
+}

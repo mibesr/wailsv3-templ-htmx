@@ -1,0 +1,67 @@
+package server_test
+
+import (
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
+	"{{.ModulePath}}/internal/server"
+)
+
+func TestLoggerCallsNext(t *testing.T) {
+	called := false
+	next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		called = true
+		w.WriteHeader(http.StatusTeapot)
+	})
+
+	h := server.Logger(next)
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
+
+	if !called {
+		t.Fatal("Logger did not invoke next handler")
+	}
+	if rec.Code != http.StatusTeapot {
+		t.Fatalf("expected status from next handler, got %d", rec.Code)
+	}
+}
+
+func TestRecovererCatchesPanic(t *testing.T) {
+	next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		panic("boom")
+	})
+
+	h := server.Recoverer(next)
+	rec := httptest.NewRecorder()
+
+	defer func() {
+		if rec := recover(); rec != nil {
+			t.Fatalf("Recoverer let panic escape: %v", rec)
+		}
+	}()
+
+	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
+
+	if rec.Code != http.StatusInternalServerError {
+		t.Fatalf("expected 500, got %d", rec.Code)
+	}
+}
+
+func TestRecovererPassesThroughNormalResponses(t *testing.T) {
+	next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("ok"))
+	})
+
+	h := server.Recoverer(next)
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rec.Code)
+	}
+	if rec.Body.String() != "ok" {
+		t.Fatalf("expected 'ok', got: %s", rec.Body.String())
+	}
+}

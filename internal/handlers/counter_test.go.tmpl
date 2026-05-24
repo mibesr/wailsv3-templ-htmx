@@ -1,0 +1,64 @@
+package handlers_test
+
+import (
+	"net/http"
+	"net/http/httptest"
+	"net/url"
+	"strings"
+	"testing"
+
+	"{{.ModulePath}}/internal/handlers"
+)
+
+func TestCounterInc(t *testing.T) {
+	mux := handlers.New(handlers.Deps{})
+
+	form := url.Values{"count": {"5"}}
+	req := httptest.NewRequest(http.MethodPost, "/api/counter/inc", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rec := httptest.NewRecorder()
+	mux.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d (body: %s)", rec.Code, rec.Body.String())
+	}
+	body := rec.Body.String()
+	if !strings.Contains(body, "Count: 6") {
+		t.Errorf("response missing 'Count: 6': %s", body)
+	}
+	if !strings.Contains(body, `hx-post="/api/counter/inc"`) {
+		t.Errorf("response missing HTMX endpoint: %s", body)
+	}
+	if !strings.Contains(body, `&#34;count&#34;: 6`) && !strings.Contains(body, `"count": 6`) {
+		t.Errorf("response hx-vals does not carry next count: %s", body)
+	}
+}
+
+func TestCounterIncFromZero(t *testing.T) {
+	mux := handlers.New(handlers.Deps{})
+
+	req := httptest.NewRequest(http.MethodPost, "/api/counter/inc", strings.NewReader("count=0"))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rec := httptest.NewRecorder()
+	mux.ServeHTTP(rec, req)
+
+	if !strings.Contains(rec.Body.String(), "Count: 1") {
+		t.Errorf("expected 'Count: 1', got: %s", rec.Body.String())
+	}
+}
+
+func TestCounterIncMissingValueTreatedAsZero(t *testing.T) {
+	mux := handlers.New(handlers.Deps{})
+
+	req := httptest.NewRequest(http.MethodPost, "/api/counter/inc", strings.NewReader(""))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rec := httptest.NewRecorder()
+	mux.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rec.Code)
+	}
+	if !strings.Contains(rec.Body.String(), "Count: 1") {
+		t.Errorf("expected 'Count: 1' (zero default + 1), got: %s", rec.Body.String())
+	}
+}

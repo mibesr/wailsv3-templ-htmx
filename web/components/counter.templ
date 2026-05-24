@@ -1,0 +1,20 @@
+package components
+
+import (
+	"fmt"
+	"strconv"
+)
+
+templ Counter(count int) {
+	<div id="counter" class="flex items-center gap-3">
+		<span class="text-lg">Count: { strconv.Itoa(count) }</span>
+		<button
+			class="rounded bg-slate-800 px-3 py-1 text-white hover:bg-slate-700"
+			hx-post="/api/counter/inc"
+			hx-vals={ fmt.Sprintf(`{"count": %d}`, count) }
+			hx-target="#counter"
+			hx-swap="outerHTML">
+			+1
+		</button>
+	</div>
+}

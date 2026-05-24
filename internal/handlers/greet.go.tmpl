@@ -1,0 +1,21 @@
+package handlers
+
+import (
+	"net/http"
+	"strings"
+
+	"{{.ModulePath}}/web/components"
+)
+
+func greet(_ Deps) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		name := strings.TrimSpace(r.FormValue("name"))
+		if name == "" {
+			name = "stranger"
+		}
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		if err := components.Greeting(name).Render(r.Context(), w); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	}
+}

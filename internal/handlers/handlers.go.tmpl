@@ -1,0 +1,20 @@
+package handlers
+
+import (
+	"net/http"
+
+	"{{.ModulePath}}/web"
+)
+
+// Deps holds anything handlers need (DB clients, config, services).
+type Deps struct{}
+
+// New returns a ServeMux with all app routes mounted.
+func New(d Deps) *http.ServeMux {
+	mux := http.NewServeMux()
+	mux.Handle("GET /",                 http.HandlerFunc(home(d)))
+	mux.Handle("POST /api/counter/inc", http.HandlerFunc(counterInc(d)))
+	mux.Handle("POST /api/greet",       http.HandlerFunc(greet(d)))
+	mux.Handle("GET /static/",          web.StaticHandler())
+	return mux
+}
