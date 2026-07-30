@@ -3,6 +3,10 @@ module {{.ModulePath}}
 go 1.26
 
 require (
+    github.com/wailsapp/wails/v3 {{.WailsVersion}}
 	github.com/a-h/templ v0.3.1020
-	github.com/wailsapp/wails/v3 v3.0.0-alpha.95
 )
+
+{{if .LocalModulePath}}
+replace github.com/wailsapp/wails/v3 => {{.LocalModulePath}}v3
+{{end}}
