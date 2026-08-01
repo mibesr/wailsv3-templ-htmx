@@ -28,13 +28,13 @@ tasks:
     desc: Install dependencies (Go + npm)
     cmds:
       - go mod download
-      - "{{.Opn}}.PACKAGE_MANAGER}} install"
+      - {{.Opn}}.PACKAGE_MANAGER{{.Cls}} install
 
   generate:
     desc: Generate Templ Go files and build Tailwind CSS
     cmds:
       - templ generate
-      - "{{.Opn}}.PACKAGE_MANAGER}} run css:build"
+      - {{.Opn}}.PACKAGE_MANAGER{{.Cls}} run css:build
 
   build:
     summary: Builds the application
@@ -63,7 +63,7 @@ tasks:
   dev:css:
     desc: Watch app.css and recompile Tailwind
     cmds:
-      - "{{.PACKAGE_MANAGER}} run css:dev"
+      - {{.Opn}}.PACKAGE_MANAGER{{.Cls}} run css:dev
 
   dev:wails:
     summary: Runs the application in development mode
