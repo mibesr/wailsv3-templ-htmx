@@ -9,7 +9,16 @@ import (
 	"{{.ModulePath}}/internal/server"
 )
 
+// //go:embed all:frontend/static
+// var assets embed.FS
+
 func main() {
+
+	// static, err := fs.Sub(assets, "frontend/static")
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+
 	mux := handlers.New(handlers.Deps{})
 
 	app := application.New(application.Options{
@@ -21,6 +30,7 @@ func main() {
 		Assets: application.AssetOptions{
 			Handler: mux,
 			Middleware: application.ChainMiddleware(
+				application.Middleware(server.Wails(mux)),
 				application.Middleware(server.Recoverer),
 				application.Middleware(server.Logger),
 			),
