@@ -3,10 +3,15 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "dev": "vite",
+    "build:dev": "vite build --minify false --mode development",
+    "build": "vite build --mode production",
+    "preview": "vite preview",
     "css:dev":   "tailwindcss -i ./web/static/src/app.css -o ./web/static/dist/app.css --watch",
     "css:build": "tailwindcss -i ./web/static/src/app.css -o ./web/static/dist/app.css --minify"
   },
   "devDependencies": {
+    "vite": "^8.0.5",
     "@tailwindcss/cli": "^4.3.0",
     "tailwindcss": "^4.3.0"
   }

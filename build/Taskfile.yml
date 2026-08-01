@@ -93,7 +93,7 @@ tasks:
           OBFUSCATED:
             ref: .OBFUSCATED
     cmds:
-      - echo "Skipping build:frontend..."
+      - echo "skipping build:frontend..."
       # - task: frontend:run
       #   vars:
       #     SCRIPT: '{{if eq .DEV "true"}}build:dev{{else}}build{{end}}'
