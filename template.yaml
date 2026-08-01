@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=https://v3.wails.io/schemas/template.v3.json
+name: wails3-template-chi-templ-htmx
+shortname: ""
+author: xxxxx
+description: "Wails3 + Chi + templ + HTMX 4 + Tailwind"
+helpurl: "https://github.com/xxxxxx/wails-template-chi-templ-htmx"
+version: v0.1.0
+wailsVersion: 3
+typescript: false
