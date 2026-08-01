@@ -1,13 +1,22 @@
 version: '3'
 
-includes:
-  linux: ./build/linux/Taskfile.yml
-  darwin: ./build/darwin/Taskfile.yml
-  windows: ./build/windows/Taskfile.yml
-
 vars:
-  APP_NAME: "{{.ProjectName}}"
+  APP_NAME: "{{.BinaryName}}"
   BIN_DIR: "bin"
+  PACKAGE_MANAGER: '{{.Opn}}.PACKAGE_MANAGER | default "pnpm"{{.Cls}}'
+  VITE_PORT: '{{.Opn}}.WAILS_VITE_PORT | default 9245{{.Cls}}'
+  # Target OS for build/package/run. Defaults to the host OS, and is overridden
+  # by `wails3 build GOOS=...` (or the GOOS env var) for cross-compilation. The
+  # tasks below dispatch to the matching platform Taskfile via this variable.
+  GOOS: '{{.Opn}}.GOOS | default OS{{.Cls}}'
+
+includes:
+  common: ./build/Taskfile.yml
+  windows: ./build/windows/Taskfile.yml
+  darwin: ./build/darwin/Taskfile.yml
+  linux: ./build/linux/Taskfile.yml
+  ios: ./build/ios/Taskfile.yml
+  android: ./build/android/Taskfile.yml
 
 tasks:
   default:
@@ -19,24 +28,28 @@ tasks:
     desc: Install dependencies (Go + npm)
     cmds:
       - go mod download
-      - npm install
+      - "{{.Opn}}.PACKAGE_MANAGER}} install"
 
   generate:
     desc: Generate Templ Go files and build Tailwind CSS
     cmds:
       - templ generate
-      - npm run css:build
+      - "{{.Opn}}.PACKAGE_MANAGER}} run css:build"
 
   build:
-    summary: Generate assets, then build for the current OS
-    deps: [generate]
+    summary: Builds the application
     cmds:
-      - task: "{{ "{{OS}}" }}:build"
+      - task: "{{.Opn}}.GOOS{{.Cls}}:build"
+
+  package:
+    summary: Packages a production build of the application
+    cmds:
+      - task: "{{.Opn}}.GOOS{{.Cls}}:package"
 
   run:
     summary: Runs the application
     cmds:
-      - task: "{{ "{{OS}}" }}:run"
+      - task: "{{.Opn}}.GOOS{{.Cls}}:run"
 
   dev:
     desc: Start dev mode (Templ + Tailwind watchers + wails3 dev) in parallel
@@ -50,10 +63,10 @@ tasks:
   dev:css:
     desc: Watch app.css and recompile Tailwind
     cmds:
-      - npm run css:dev
+      - "{{.PACKAGE_MANAGER}} run css:dev"
 
   dev:wails:
-    desc: Start the Wails dev loop
+    summary: Runs the application in development mode
     cmds:
       - wails3 dev
 
@@ -62,3 +75,28 @@ tasks:
     cmds:
       - rm -rf bin build/bin web/static/dist/app.css
       - find . -name "*_templ.go" -delete
+
+  setup:docker:
+    summary: Builds Docker image for cross-compilation (~800MB download)
+    cmds:
+      - task: common:setup:docker
+
+  build:server:
+    summary: Builds the application in server mode (no GUI, HTTP server only)
+    cmds:
+      - task: common:build:server
+
+  run:server:
+    summary: Runs the application in server mode
+    cmds:
+      - task: common:run:server
+
+  build:docker:
+    summary: Builds a Docker image for server mode deployment
+    cmds:
+      - task: common:build:docker
+
+  run:docker:
+    summary: Builds and runs the Docker image
+    cmds:
+      - task: common:run:docker
