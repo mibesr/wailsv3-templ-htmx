@@ -68,6 +68,7 @@ tasks:
   dev:wails:
     summary: Runs the application in development mode
     cmds:
+      - lsof -i -n -P | grep {{.Opn}}.VITE_PORT{{.Cls}} | awk '{print $2}' | xargs kill
       - wails3 dev
 
   clean:
